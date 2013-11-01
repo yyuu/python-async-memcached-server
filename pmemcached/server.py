@@ -38,6 +38,7 @@ class Memcached(protocol.Protocol):
         #'flush': {'command': 0x08, 'struct': 'I'},
         #'auth_negotiation': {'command': 0x20},
         #'auth_request': {'command': 0x21, 'struct': '%ds%ds'}
+        'version': {'command': 0x0b},
     }
 
     STATUSES = {
@@ -51,6 +52,8 @@ class Memcached(protocol.Protocol):
         'unknown_command': {'code': 0x81, 'message': 'Unknown command'},
         'out_of_memory': {'code': 0x82, 'message': ''},
     }
+
+    MEMCACHED_VERSION = "1.4.13"
 
     def __init__(self, factory):
         self.factory = factory
@@ -167,6 +170,10 @@ class Memcached(protocol.Protocol):
             self.sendMessage(command, 0, 0, self.STATUSES['success'], 0, 0)
         except KeyError:
              self.sendMessage(command, 0, 0, self.STATUSES['key_not_found'], 0, 0)
+
+    def handleVersionCommand(self, magic, command, keyLength, extLength, dateType,
+        status, bodyLength, opaque, cas, extra):
+        self.sendMessage(command, 0, 0, self.STATUSES['success'], 0, 0, None, self.MEMCACHED_VERSION)
 
     def _handleIncrDecrCommand(self, magic, command, keyLength, extLength,
         dataType, status, bodyLength, opaque, cas, extra):
